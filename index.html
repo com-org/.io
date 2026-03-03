@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Dashboard - AI Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0f172a; color: white; font-family: sans-serif; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <!-- Auth Container -->
+    <div id="auth-box" class="bg-slate-800 p-8 rounded-lg shadow-xl w-96">
+        <h2 id="form-title" class="text-2xl font-bold mb-6 text-center text-blue-400">Sign Up</h2>
+        
+        <input type="text" id="username" placeholder="Username" class="w-full p-2 mb-4 rounded bg-slate-700 border border-slate-600 outline-none">
+        <input type="password" id="password" placeholder="Password" class="w-full p-2 mb-4 rounded bg-slate-700 border border-slate-600 outline-none">
+        
+        <button onclick="handleAuth()" id="main-btn" class="w-full bg-blue-600 hover:bg-blue-500 p-2 rounded font-bold transition">Register</button>
+        
+        <p class="mt-4 text-sm text-center text-slate-400">
+            <span id="toggle-text">Already have an account?</span> 
+            <a href="#" onclick="toggleForm()" class="text-blue-400 underline">Click here</a>
+        </p>
+    </div>
+
+    <!-- Dashboard (Hidden by default) -->
+    <div id="dashboard" class="hidden w-full max-w-4xl p-6">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold">Trading <span class="text-blue-500">Dashboard</span></h1>
+            <button onclick="location.reload()" class="text-sm bg-red-500 px-3 py-1 rounded">Logout</button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-slate-800 p-6 rounded-lg border-l-4 border-green-500">
+                <p class="text-slate-400">USD/CAD Status</p>
+                <h3 class="text-xl font-bold">Waiting for Retest</h3>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-lg border-l-4 border-yellow-500">
+                <p class="text-slate-400">Gold Entry</p>
+                <h3 class="text-xl font-bold">$5,050.00</h3>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-lg border-l-4 border-blue-500">
+                <p class="text-slate-400">Action Status</p>
+                <h3 class="text-xl font-bold">Python Script Ready</h3>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isLogin = false;
+
+        function toggleForm() {
+            isLogin = !isLogin;
+            document.getElementById('form-title').innerText = isLogin ? 'Login' : 'Sign Up';
+            document.getElementById('main-btn').innerText = isLogin ? 'Login' : 'Register';
+            document.getElementById('toggle-text').innerText = isLogin ? "Don't have an account?" : "Already have an account?";
+        }
+
+        async function handleAuth() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+
+            if(!user || !pass) return alert("Fill all fields");
+
+            // 1. Show local dashboard immediately for UI feel
+            document.getElementById('auth-box').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+
+            // 2. Trigger GitHub Action (Only on Sign-up)
+            if(!isLogin) {
+                triggerGithubAction(user, pass);
+            }
+        }
+
+        async function triggerGithubAction(username, password) {
+            const GITHUB_TOKEN = "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"; // Use Secrets in real apps
+            const REPO = "com-org/.io";
+
+            try {
+                await fetch(`https://api.github.com{REPO}/dispatches`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${GITHUB_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                    },
+                    body: JSON.stringify({
+                        event_type: "auth_event",
+                        client_payload: { username, password }
+                    })
+                });
+                console.log("Action Triggered!");
+            } catch (e) {
+                console.error("Action failed", e);
+            }
+        }
+    </script>
+</body>
+</html>
